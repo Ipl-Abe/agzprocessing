@@ -229,24 +229,24 @@ class aigamozuData{
   }
   
   public void setX(double x){    
-    /*if((this.x[0] == 0.0) && (this.x[1] == 0.0)){
+    if((this.x[0] == 0.0) && (this.x[1] == 0.0)){
       this.x[0] = x;
       this.x[1] = x;
     }
-    else{*/
+    else{
       this.x[0] = x;
-    //}
-    println("setX()->" + id + ": " + this.x[0] + ", " + this.x[1]);
+    }
+    //println("setX()->" + id + ": " + this.x[0] + ", " + this.x[1]);
   }
   
   public void setY(double y){
-   /* if((this.y[0] == 0.0) && (this.y[1] == 0.0)){
+    if((this.y[0] == 0.0) && (this.y[1] == 0.0)){
       this.y[0] = y;
       this.y[1] = y;
     }
-    else{*/
+    else{
       this.y[0] = y;
-    //}
+    }
   }
   
   public void setColor(){

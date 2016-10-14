@@ -27,7 +27,7 @@ byte baseId[] = {a, b, c, d};
 
 Serial port;
 int request_timer;
-int plot_flag[] = new int [robotId.length];
+boolean plot_flag = false;
 byte[] packet;
 int num=1;
 
@@ -93,20 +93,7 @@ public void draw(){
   if(port.available() > 0) {
     // get and store packet
     getPacket();
-    // print GPS data
-    for(int i=0; i<robotId.length; i++){
-      println(robot[i].getId() + " " + robot[i].getLongitude() + " " + robot[i].getLatitude());
-      if(robot[i].getLongitude() != 0.0 && robot[i].getLatitude() != 0.0){
-        robotCordinateTrans(i);
-        robotPlot(i);
-      }
-    } 
-    for(int i=0; i<baseId.length; i++){
-      println(base[i].getId() + " " + base[i].getLongitude() + " " + base[i].getLatitude());
-      //if(base[i].getLongitude() != 0.0 && base[i].getLatitude() != 0.0){
-        basePlot(i);
-      //}
-    }
+
   }  
 } 
 
@@ -149,7 +136,7 @@ for(int i = 0; i < 4; i ++){
     //basePos[i][j] = 0.0;
     // basePosText[i][j].setColorBackground(color(1,1,1));
     if(j%2 == 0){
-    basePosText[i][j] = cp5.addTextfield("longitude_"+char(65+i))
+    basePosText[i][j] = cp5.addTextfield(str(i))
                            .setPosition(width - 400,height/2 + 70 + 85*i)
                            .setFont(pfont)
                            .setColorBackground(color(0x87,0xCE,0xFA))
@@ -163,7 +150,7 @@ for(int i = 0; i < 4; i ++){
                     
     }
     else{
-    basePosText[i][j] = cp5.addTextfield("latitude_"+char(65+i))
+    basePosText[i][j] = cp5.addTextfield(str(i+baseId.length))
                            .setPosition(width - 200,height/2 + 70+85*i)
                            .setFont(pfont)
                            .setColorBackground(color(0x87,0xCE,0xFA))
@@ -254,6 +241,7 @@ public void calcScale(){
   for(int i=0; i<baseId.length; i++){
       base[i].setX(map((float)dX[i], (float)x_scale_min, (float)x_scale_max, 0, 1000));
       base[i].setY(map((float)dY[i], (float)y_scale_min, (float)y_scale_max, 1000, 0));
+      basePlot(i);
   }
 }
 
@@ -283,30 +271,35 @@ public float calc_distanceY(float y1, float y2){
 public void robotPlot(int i){
   double x, y, px, py;
   
-  // robot plot
-    x = robot[i].getX();
-    y = robot[i].getY();
-    px = robot[i].getPreviousX();
-    py = robot[i].getPreviousY();
+  println("robot plot");
+  println(robot[i].getId() + " " + robot[i].getLongitude() + " " + robot[i].getLatitude());
+  robotCordinateTrans(i);
+  
+  x = robot[i].getX();
+  y = robot[i].getY();
+  px = robot[i].getPreviousX();
+  py = robot[i].getPreviousY();
     
-    int rgb[] = robot[i].getRGB();
-    stroke(rgb[0], rgb[1], rgb[2]);
-    cross((float)x, (float)y);
-    beginShape(LINES);
-    vertex((float)px, (float)py);
-    vertex((float)x, (float)y);
-    endShape();
-    robot[i].colorGradation();
+  int rgb[] = robot[i].getRGB();
+  stroke(rgb[0], rgb[1], rgb[2]);
+  cross((float)x, (float)y);
+  beginShape(LINES);
+  vertex((float)px, (float)py);
+  vertex((float)x, (float)y);
+  endShape();
+  robot[i].colorGradation();
 }
  
 public void basePlot(int i){
   double x, y;
-    x = base[i].getX();
-    y = base[i].getY();
-    fill(0);
-    text(base[i].getId(), (float)x-20, (float)y-20);
-    stroke(0);
-    triangle((float)x, (float)y-10, (float)x-4, (float)y-2, (float)x+4, (float)y-2);
+  println("base plot");
+  plot_flag = true;
+  x = base[i].getX();
+  y = base[i].getY();
+  fill(0);
+  text(base[i].getId(), (float)x-20, (float)y-20);
+  stroke(0);
+  triangle((float)x, (float)y-10, (float)x-4, (float)y-2, (float)x+4, (float)y-2);
 }
 
 public void cross(float x, float y){
@@ -367,6 +360,7 @@ public void getPacket(){
           for(int j=0; j<robotId.length; j++){
             if(packet[startIdx+5] == robot[j].getId()){
               robot[j].dataSetting(packet, startIdx, endIdx, gpsIdx);
+              if(plot_flag) robotPlot(j);
               break;
             }
           }
@@ -376,6 +370,7 @@ public void getPacket(){
           for(int j=0; j<baseId.length; j++){
             if(packet[startIdx+5] == base[j].getId()){
               base[j].dataSetting(packet, startIdx, endIdx, gpsIdx);
+              println(base[j].getId() + " " + base[j].getLongitude() + " " + base[j].getLatitude());
               break;
             }
           }
@@ -400,8 +395,8 @@ void config(){
     basePosText[i][0].setAutoClear(false);
     basePosText[i][1].setAutoClear(false);
     
-    //basePos[i][0] = float(nf((float)base[i].getLongitude(), 3, 6));
-    //basePos[i][1] = float(nf((float)base[i].getLatitude(), 3, 6));
+    basePos[i][0] = float(nf((float)base[i].getLongitude(), 3, 6));
+    basePos[i][1] = float(nf((float)base[i].getLatitude(), 3, 6));
     
     basePosText[i][0].setText(str(basePos[i][0]));
     basePosText[i][1].setText(str(basePos[i][1]));
